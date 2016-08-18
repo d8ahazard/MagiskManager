@@ -49,7 +49,7 @@ public class ModulesActivity extends Activity {
         @Override
         protected Boolean doInBackground(Void... voids) {
             File[] magisk = new File(MAGISK_PATH).listFiles(File::isDirectory);
-            File[] magiskCache = new File(MAGISK_CACHE_PATH).listFiles();
+            File[] magiskCache = new File(MAGISK_CACHE_PATH).listFiles(File::isDirectory);
 
             if (magisk != null) {
                 for (File mod : magisk) {

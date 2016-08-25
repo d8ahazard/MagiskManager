@@ -9,8 +9,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +17,6 @@ import android.widget.ProgressBar;
 import com.topjohnwu.magisk.module.Module;
 import com.topjohnwu.magisk.utils.Utils;
 
-import java.io.File;
-import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -33,20 +29,14 @@ public class ModulesFragment extends Fragment {
     private static final String MAGISK_PATH = "/magisk";
     private static final String MAGISK_CACHE_PATH = "/cache/magisk";
 
-//    protected static List<Module> listModules = new ArrayList<>();
-//    protected static List<Module> listModulesCache = new ArrayList<>();
+    private static List<Module> listModules = new ArrayList<>();
+    private static List<Module> listModulesCache = new ArrayList<>();
+
+    public static loadModules loadMod;
 
     @BindView(R.id.progressBar) ProgressBar progressBar;
     @BindView(R.id.pager) ViewPager viewPager;
     @BindView(R.id.tab_layout) TabLayout tabLayout;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-//        listModules.clear();
-//        listModulesCache.clear();
-    }
 
     @Nullable
     @Override
@@ -54,26 +44,19 @@ public class ModulesFragment extends Fragment {
         View view = inflater.inflate(R.layout.modules_fragment, container, false);
         ButterKnife.bind(this, view);
 
-        new CheckFolders().execute();
+        new updateUI().execute();
 
         setHasOptionsMenu(true);
         return view;
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu_modules, menu);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.force_reload:
-                listModules.clear();
-                listModulesCache.clear();
-
-                new CheckFolders().execute();
+                loadMod = new loadModules();
+                loadMod.execute();
+                new updateUI().execute();
                 break;
         }
 
@@ -84,7 +67,7 @@ public class ModulesFragment extends Fragment {
 
         @Override
         protected List<Module> listModules() {
-            return Utils.listModules;
+            return listModules;
         }
 
     }
@@ -93,18 +76,46 @@ public class ModulesFragment extends Fragment {
 
         @Override
         protected List<Module> listModules() {
-            return Utils.listModulesCache;
+            return listModulesCache;
         }
 
     }
 
-    private class CheckFolders extends AsyncTask<Void, Integer, Void> {
+    public static class loadModules extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            // Ensure initialize is done
+
+            listModules.clear();
+            listModulesCache.clear();
+
+            listModules.clear();
+            listModulesCache.clear();
+            List<String> magisk = Utils.getModList(MAGISK_PATH);
+            List<String> magiskCache = Utils.getModList(MAGISK_CACHE_PATH);
+            if (!magisk.isEmpty()) {
+                for (String mod : magisk) {
+                    listModules.add(new Module(mod));
+                }
+            }
+
+            if (!magiskCache.isEmpty()) {
+                for (String mod : magiskCache) {
+                    listModulesCache.add(new Module(mod));
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private class updateUI extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            // Ensure loadMod is done
             try {
-                Utils.initialize.get();
+                loadMod.get();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }

@@ -1,19 +1,28 @@
 <resources>
     <string name="app_name">Magisk Manager</string>
+
+    <string name="magisk" translatable="false">Magisk</string>
+    <string name="magisk_version">Installed Magisk v%1$s</string>
+    <string name="magisk_version_error">Have you installed Magisk?</string>
+
+    <string name="root_error">Root Error</string>
+    <string name="root_error_info">Safety Net Status Unknown</string>
+    <string name="root_none">Not Rooted</string>
+    <string name="root_none_info">Safety Net (Android Pay) should work</string>
     <string name="root_mounted">Root mounted</string>
     <string name="root_mounted_info">Root mounted and enabled. Safety Net (Android Pay) will NOT work</string>
     <string name="root_unmounted">Root not mounted</string>
     <string name="root_unmounted_info">Safety Net (Android Pay) should work, but no root temporarily</string>
-    <string name="selinux_enforcing_info">SELinux is enforced</string>
-    <string name="selinux_permissive_info">SELinux is permissive\nOnly turn off SELinux if necessary!</string>
-    <string name="root_toggle">Root Toggle</string>
-    <string name="selinux_toggle">SeLinux Toggle</string>
     <string name="root_system">Improperly Installed</string>
     <string name="root_system_info">Root improperly installed. Safety Net (Android Pay) will NOT work, and impossible to toggle</string>
-    <string name="root_none">Not Rooted</string>
-    <string name="root_none_info">Safety Net (Android Pay) should work</string>
-    <string name="magisk_version">Installed Magisk v%1$s</string>
-    <string name="selinux_samsung">Samsung do not support switching SELinux status!</string>
+
+    <string name="selinux_error_info">SELinux Status Unknown</string>
+    <string name="selinux_enforcing_info">SELinux is enforced</string>
+    <string name="selinux_permissive_info">SELinux is permissive\nOnly turn off SELinux if necessary!</string>
+    <string name="selinux_samsung_info">Samsung do not support switching SELinux status!</string>
+
+    <string name="root_toggle">Root Toggle</string>
+    <string name="selinux_toggle">SELinux Toggle</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -34,7 +43,6 @@
     <string name="logs_save_failed">Could not write log to SD card:</string>
     <string name="permissionNotGranted">This feature will not work without permission to write external storage.</string>
     <string name="disable_file_removed">Module will be enabled at next reboot</string>
-    <string name="magisk">Magisk</string>
     <string name="remove_file_deleted">Module will not be removed at next reboot</string>
     <string name="cache_modules">Cache modules</string>
     <string name="about">About</string>

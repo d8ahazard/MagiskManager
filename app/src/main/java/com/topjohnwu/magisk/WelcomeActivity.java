@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -20,6 +21,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.topjohnwu.magisk.utils.MonitorService;
 import com.topjohnwu.magisk.utils.Utils;
 
 import butterknife.BindView;
@@ -31,9 +33,12 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
 
     private final Handler mDrawerHandler = new Handler();
 
-    @BindView(R.id.toolbar) Toolbar toolbar;
-    @BindView(R.id.drawer_layout) DrawerLayout drawer;
-    @BindView(R.id.nav_view) NavigationView navigationView;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+    @BindView(R.id.drawer_layout)
+    DrawerLayout drawer;
+    @BindView(R.id.nav_view)
+    NavigationView navigationView;
 
     @IdRes
     private int mSelectedId = R.id.magisk;
@@ -43,12 +48,12 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
         ButterKnife.bind(this);
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
 
         // Startups
+        PreferenceManager.setDefaultValues(this, R.xml.defaultpref, false);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
@@ -86,7 +91,7 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
 
         navigationView.setNavigationItemSelectedListener(this);
 
-        }
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -128,6 +133,11 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
                 tag = "root";
                 navFragment = new RootFragment();
                 break;
+            case R.id.autoroot:
+                setTitle(R.string.auto_root);
+                tag = "autoroot";
+                navFragment = new AutoRootFragment();
+                break;
             case R.id.modules:
                 setTitle(R.string.modules);
                 tag = "modules";
@@ -154,4 +164,6 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
             }
         }
     }
+
+
 }

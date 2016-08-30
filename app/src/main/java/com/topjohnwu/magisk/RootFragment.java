@@ -28,6 +28,7 @@ public class RootFragment extends Fragment {
     @BindView(R.id.progressBar) ProgressBar progressBar;
 
     @BindView(R.id.rootSwitchView) View rootToggleView;
+    @BindView(R.id.autoRootSwitchView) View autoRootToggleView;
     @BindView(R.id.selinuxSwitchView) View selinuxToggleView;
     @BindView(R.id.rootStatusView) View rootStatusView;
     @BindView(R.id.safetynetStatusView) View safetynetStatusView;
@@ -98,6 +99,7 @@ public class RootFragment extends Fragment {
 
             if (Shell.rootAccess()) {
                 rootToggleView.setVisibility(View.VISIBLE);
+                autoRootToggleView.setVisibility(View.VISIBLE);
                 selinuxToggleView.setVisibility(View.VISIBLE);
             }
 
@@ -183,7 +185,7 @@ public class RootFragment extends Fragment {
                     rootToggle.setChecked(true);
                     safetyNetStatusIcon.setImageResource(statusError);
                     safetyNetStatus.setText(R.string.root_system_info);
-
+                    autoRootToggleView.setVisibility(View.GONE);
                     rootToggleView.setVisibility(View.GONE);
                     selinuxToggleView.setVisibility(View.GONE);
                     break;

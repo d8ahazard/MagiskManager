@@ -1,5 +1,7 @@
 package com.topjohnwu.magisk.utils;
 
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,8 +38,7 @@ public class StreamGobbler extends Thread {
         try {
             String line;
             while ((line = reader.readLine()) != null) {
-                if (!line.replaceAll("\\s", "").isEmpty())
-                    writer.add(line);
+                writer.add(line);
             }
         } catch (IOException e) {
             // reader probably closed, expected exit condition

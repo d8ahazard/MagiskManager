@@ -1,12 +1,15 @@
 package com.topjohnwu.magisk;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -17,8 +20,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.github.javiersantos.appupdater.AppUpdater;
-import com.github.javiersantos.appupdater.enums.UpdateFrom;
+import com.topjohnwu.magisk.utils.Utils;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -26,7 +28,7 @@ import butterknife.ButterKnife;
 public class WelcomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String SELECTED_ITEM_ID = "SELECTED_ITEM_ID";
-    private static final String XML_UPDATE_CHECK = "https://raw.githubusercontent.com/topjohnwu/MagiskManager/master/app/magisk_update.xml";
+
     private final Handler mDrawerHandler = new Handler();
 
     @BindView(R.id.toolbar) Toolbar toolbar;
@@ -46,9 +48,14 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
 
-        // Load mods in the background
-        ModulesFragment.loadMod = new ModulesFragment.loadModules();
-        ModulesFragment.loadMod.execute();
+        // Startups
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
+        }
+        new Utils.Initialize(this).execute();
+        new Utils.CheckUpdates(this).execute();
+        new Utils.LoadModules(this).execute();
 
         setSupportActionBar(toolbar);
 
@@ -74,18 +81,12 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
 
         if (savedInstanceState == null) {
             mDrawerHandler.removeCallbacksAndMessages(null);
-            mDrawerHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    navigate(mSelectedId);
-                }
-            }, 250);
+            mDrawerHandler.postDelayed(() -> navigate(mSelectedId), 250);
         }
 
         navigationView.setNavigationItemSelectedListener(this);
 
-        new AppUpdater(this).setUpdateFrom(UpdateFrom.XML).setUpdateXML(XML_UPDATE_CHECK).start();
-    }
+        }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -107,12 +108,7 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
     public boolean onNavigationItemSelected(@NonNull final MenuItem menuItem) {
         mSelectedId = menuItem.getItemId();
         mDrawerHandler.removeCallbacksAndMessages(null);
-        mDrawerHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                navigate(menuItem.getItemId());
-            }
-        }, 250);
+        mDrawerHandler.postDelayed(() -> navigate(menuItem.getItemId()), 250);
 
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -126,6 +122,11 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
                 setTitle(R.string.magisk);
                 tag = "magisk";
                 navFragment = new MagiskFragment();
+                break;
+            case R.id.root:
+                setTitle(R.string.root);
+                tag = "root";
+                navFragment = new RootFragment();
                 break;
             case R.id.modules:
                 setTitle(R.string.modules);

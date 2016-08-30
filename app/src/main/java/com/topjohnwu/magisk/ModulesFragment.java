@@ -9,6 +9,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,13 +28,8 @@ import butterknife.ButterKnife;
 
 public class ModulesFragment extends Fragment {
 
-    private static final String MAGISK_PATH = "/magisk";
-    private static final String MAGISK_CACHE_PATH = "/cache/magisk";
-
-    private static List<Module> listModules = new ArrayList<>();
-    private static List<Module> listModulesCache = new ArrayList<>();
-
-    public static loadModules loadMod;
+    public static List<Module> listModules = new ArrayList<>();
+    public static List<Module> listModulesCache = new ArrayList<>();
 
     @BindView(R.id.progressBar) ProgressBar progressBar;
     @BindView(R.id.pager) ViewPager viewPager;
@@ -51,11 +48,21 @@ public class ModulesFragment extends Fragment {
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.menu_module, menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.force_reload:
-                loadMod = new loadModules();
-                loadMod.execute();
+                listModules.clear();
+                listModulesCache.clear();
+                progressBar.setVisibility(View.VISIBLE);
+                viewPager.setAdapter(new TabsAdapter(getChildFragmentManager()));
+                tabLayout.setupWithViewPager(viewPager);
+                new Utils.LoadModules(getContext()).execute();
                 new updateUI().execute();
                 break;
         }
@@ -81,45 +88,10 @@ public class ModulesFragment extends Fragment {
 
     }
 
-    public static class loadModules extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            listModules.clear();
-            listModulesCache.clear();
-
-            listModules.clear();
-            listModulesCache.clear();
-            List<String> magisk = Utils.getModList(MAGISK_PATH);
-            List<String> magiskCache = Utils.getModList(MAGISK_CACHE_PATH);
-            if (!magisk.isEmpty()) {
-                for (String mod : magisk) {
-                    listModules.add(new Module(mod));
-                }
-            }
-
-            if (!magiskCache.isEmpty()) {
-                for (String mod : magiskCache) {
-                    listModulesCache.add(new Module(mod));
-                }
-            }
-
-            return null;
-        }
-    }
-
     private class updateUI extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            // Ensure loadMod is done
-            try {
-                loadMod.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-
             return null;
         }
 

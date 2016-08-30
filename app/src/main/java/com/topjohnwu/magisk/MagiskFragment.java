@@ -1,24 +1,23 @@
 package com.topjohnwu.magisk;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.FileProvider;
+import android.support.v7.app.AlertDialog;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 
-import com.topjohnwu.magisk.utils.Shell;
 import com.topjohnwu.magisk.utils.Utils;
 
 import java.io.File;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import butterknife.BindColor;
 import butterknife.BindView;
@@ -26,75 +25,48 @@ import butterknife.ButterKnife;
 
 public class MagiskFragment extends Fragment {
 
-    @BindView(R.id.progressBar) ProgressBar progressBar;
+    @BindView(R.id.progressBarVersion) ProgressBar progressBar;
 
-    @BindView(R.id.rootSwitchView) View rootToggleView;
-    @BindView(R.id.selinuxSwitchView) View selinuxToggleView;
     @BindView(R.id.magiskStatusView) View magiskStatusView;
-    @BindView(R.id.rootStatusView) View rootStatusView;
-    @BindView(R.id.safetynetStatusView) View safetynetStatusView;
-    @BindView(R.id.selinuxStatusView) View selinuxStatusView;
-
-    @BindView(R.id.root_toggle) Switch rootToggle;
-    @BindView(R.id.selinux_toggle) Switch selinuxToggle;
-
     @BindView(R.id.magisk_status_container) View magiskStatusContainer;
     @BindView(R.id.magisk_status_icon) ImageView magiskStatusIcon;
     @BindView(R.id.magisk_version) TextView magiskVersion;
 
-    @BindView(R.id.root_status_container) View rootStatusContainer;
-    @BindView(R.id.root_status_icon) ImageView rootStatusIcon;
-    @BindView(R.id.root_status) TextView rootStatus;
+    @BindView(R.id.app_updateView) View appUpdateView;
+    @BindView(R.id.app_check_updates_container) View appCheckUpdatesContainer;
+    @BindView(R.id.app_check_updates_icon) ImageView appCheckUpdatesIcon;
+    @BindView(R.id.app_check_updates_status) TextView appCheckUpdatesStatus;
+    @BindView(R.id.app_check_updates_progress) ProgressBar appCheckUpdatesProgress;
 
-    @BindView(R.id.selinux_status_container) View selinuxStatusContainer;
-    @BindView(R.id.selinux_status_icon) ImageView selinuxStatusIcon;
-    @BindView(R.id.selinux_status) TextView selinuxStatus;
+    @BindView(R.id.magisk_updateView) View magiskUpdateView;
+    @BindView(R.id.magisk_check_updates_container) View magiskCheckUpdatesContainer;
+    @BindView(R.id.magisk_check_updates_icon) ImageView magiskCheckUpdatesIcon;
+    @BindView(R.id.magisk_check_updates_status) TextView magiskCheckUpdatesStatus;
+    @BindView(R.id.magisk_check_updates_progress) ProgressBar magiskCheckUpdatesProgress;
 
-    @BindView(R.id.safety_net_status) TextView safetyNetStatus;
-    @BindView(R.id.safety_net_icon) ImageView safetyNetStatusIcon;
-
-    @BindColor(R.color.red500) int red500;
     @BindColor(R.color.green500) int green500;
+    @BindColor(R.color.accent) int accent;
+    @BindColor(R.color.blue500) int blue500;
     @BindColor(R.color.grey500) int grey500;
-    @BindColor(R.color.lime500) int lime500;
 
     int statusOK = R.drawable.ic_check_circle;
-    int statusError = R.drawable.ic_error;
     int statusUnknown = R.drawable.ic_help;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.magisk_fragment, container, false);
-        ButterKnife.bind(this, view);
+        View v = inflater.inflate(R.layout.magisk_fragment, container, false);
+        ButterKnife.bind(this, v);
 
         new updateUI().execute();
 
-        rootToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                Shell.su(b ? "setprop magisk.root 1" : "setprop magisk.root 0");
-                new updateUI().execute();
-            }
-        });
-
-        selinuxToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                Shell.su(b ? "setenforce 1" : "setenforce 0");
-                new updateUI().execute();
-            }
-        });
-
-        return view;
+        return v;
     }
 
     private class updateUI extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            // Make sure static block invoked
-            Shell.rootAccess();
             return null;
         }
 
@@ -102,22 +74,7 @@ public class MagiskFragment extends Fragment {
         protected void onPostExecute(Void v) {
             super.onPostExecute(v);
 
-            progressBar.setVisibility(View.GONE);
-
-            magiskStatusView.setVisibility(View.VISIBLE);
-            rootStatusView.setVisibility(View.VISIBLE);
-            safetynetStatusView.setVisibility(View.VISIBLE);
-            selinuxStatusView.setVisibility(View.VISIBLE);
-
-            if (Shell.rootAccess()) {
-                rootToggleView.setVisibility(View.VISIBLE);
-                selinuxToggleView.setVisibility(View.VISIBLE);
-            }
-
-            List<String> selinux = Shell.sh("getenforce");
-            List<String> version = Shell.sh("getprop magisk.version");
-
-            if (version.isEmpty()) {
+            if (Utils.magiskVersion == -1) {
                 magiskStatusContainer.setBackgroundColor(grey500);
                 magiskStatusIcon.setImageResource(statusUnknown);
 
@@ -128,94 +85,80 @@ public class MagiskFragment extends Fragment {
                 magiskStatusIcon.setImageResource(statusOK);
 
                 magiskVersion.setTextColor(green500);
-                magiskVersion.setText(getString(R.string.magisk_version, version.get(0)));
+                magiskVersion.setText(getString(R.string.magisk_version, String.valueOf(Utils.magiskVersion)));
             }
 
-            if (selinux.isEmpty()) {
-                selinuxStatusContainer.setBackgroundColor(grey500);
-                selinuxStatusIcon.setImageResource(statusUnknown);
+            if (Utils.remoteMagiskVersion == -1) {
+                appCheckUpdatesContainer.setBackgroundColor(accent);
+                magiskCheckUpdatesContainer.setBackgroundColor(accent);
 
-                selinuxStatus.setText(R.string.selinux_error_info);
-                selinuxStatus.setTextColor(grey500);
-                selinuxToggle.setChecked(false);
-            } else if (selinux.get(0).equals("Enforcing")) {
-                selinuxStatusContainer.setBackgroundColor(green500);
-                selinuxStatusIcon.setImageResource(statusOK);
+                appCheckUpdatesIcon.setImageResource(R.drawable.ic_warning);
+                magiskCheckUpdatesIcon.setImageResource(R.drawable.ic_warning);
 
-                selinuxStatus.setText(R.string.selinux_enforcing_info);
-                selinuxStatus.setTextColor(green500);
-                selinuxToggle.setChecked(true);
+                appCheckUpdatesStatus.setText(R.string.cannot_check_updates);
+                magiskCheckUpdatesStatus.setText(R.string.cannot_check_updates);
             } else {
-                selinuxStatusContainer.setBackgroundColor(red500);
-                selinuxStatusIcon.setImageResource(statusError);
+                if (Utils.remoteMagiskVersion > Utils.magiskVersion) {
+                    magiskCheckUpdatesContainer.setBackgroundColor(blue500);
+                    magiskCheckUpdatesIcon.setImageResource(R.drawable.ic_file_download);
+                    magiskCheckUpdatesStatus.setText(getString(R.string.magisk_update_available, String.valueOf(Utils.remoteMagiskVersion)));
+                    magiskUpdateView.setOnClickListener(view -> new AlertDialog.Builder(getActivity())
+                            .setTitle(getString(R.string.update_title, getString(R.string.magisk)))
+                            .setMessage(Html.fromHtml(getString(R.string.update_msg, getString(R.string.magisk), String.valueOf(Utils.remoteMagiskVersion), Utils.magiskChangelog)))
+                            .setCancelable(true)
+                            .setPositiveButton(R.string.download_install, (dialogInterface, i) -> {
+                                Utils.downloadAndReceive(
+                                        getActivity(),
+                                        new Utils.DownloadReceiver(getString(R.string.magisk)) {
+                                            @Override
+                                            public void task(File file) {
+                                                new Utils.FlashZIP(mContext, mName, file.getPath()).execute();
+                                            }
+                                        },
+                                        Utils.magiskLink, "latest_magisk.zip");
+                            })
+                            .setNegativeButton(R.string.no_thanks, null)
+                            .show());
+                } else {
+                    magiskCheckUpdatesContainer.setBackgroundColor(green500);
+                    magiskCheckUpdatesIcon.setImageResource(R.drawable.ic_check_circle);
+                    magiskCheckUpdatesStatus.setText(getString(R.string.up_to_date, getString(R.string.magisk)));
+                }
 
-                selinuxStatus.setText(R.string.selinux_permissive_info);
-                selinuxStatus.setTextColor(red500);
-                selinuxToggle.setChecked(false);
+                if (Utils.remoteAppVersion > BuildConfig.VERSION_CODE) {
+                    appCheckUpdatesContainer.setBackgroundColor(blue500);
+                    appCheckUpdatesIcon.setImageResource(R.drawable.ic_file_download);
+                    appCheckUpdatesStatus.setText(getString(R.string.app_update_available, String.valueOf(Utils.remoteAppVersion)));
+                    appUpdateView.setOnClickListener(view -> new AlertDialog.Builder(getActivity())
+                            .setTitle(getString(R.string.update_title, getString(R.string.app_name)))
+                            .setMessage(Html.fromHtml(getString(R.string.update_msg, getString(R.string.app_name), String.valueOf(Utils.remoteAppVersion), Utils.appChangelog)))
+                            .setCancelable(true)
+                            .setPositiveButton(R.string.download_install, (dialogInterface, i) -> {
+                                Utils.downloadAndReceive(getActivity(),
+                                        new Utils.DownloadReceiver() {
+                                            @Override
+                                            public void task(File file) {
+                                                Intent install = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+                                                install.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                                install.setData(FileProvider.getUriForFile(mContext, "com.topjohnwu.magisk.provider", file));
+                                                mContext.startActivity(install);
+                                            }
+                                        },
+                                        Utils.appLink, "latest_manager.apk");
+                            })
+                            .setNegativeButton(R.string.no_thanks, null)
+                            .show()
+                    );
+                } else {
+                    appCheckUpdatesContainer.setBackgroundColor(green500);
+                    appCheckUpdatesIcon.setImageResource(R.drawable.ic_check_circle);
+                    appCheckUpdatesStatus.setText(getString(R.string.up_to_date, getString(R.string.app_name)));
+                }
             }
 
-            if (new File("/system/framework/twframework.jar").exists()) {
-                selinuxToggleView.setVisibility(View.GONE);
-                selinuxStatus.append("\n" + getString(R.string.selinux_samsung_info));
-            }
-
-            switch (Shell.rootStatus) {
-                case -1:
-                    // Root Error
-                    rootStatusContainer.setBackgroundColor(grey500);
-                    rootStatusIcon.setImageResource(statusUnknown);
-                    rootStatus.setTextColor(grey500);
-                    rootStatus.setText(R.string.root_error);
-                    rootToggle.setChecked(false);
-                    safetyNetStatusIcon.setImageResource(statusUnknown);
-                    safetyNetStatus.setText(R.string.root_error_info);
-                    break;
-                case 0:
-                    // Not rooted
-                    rootStatusContainer.setBackgroundColor(green500);
-                    rootStatusIcon.setImageResource(statusOK);
-                    rootStatus.setTextColor(green500);
-                    rootStatus.setText(R.string.root_none);
-                    rootToggle.setChecked(false);
-                    safetyNetStatusIcon.setImageResource(statusOK);
-                    safetyNetStatus.setText(R.string.root_none_info);
-                    break;
-                case 1:
-                    // Proper root
-                    if (new File("/system/xbin/su").exists()) {
-                        // Mounted
-                        rootStatusContainer.setBackgroundColor(lime500);
-                        rootStatusIcon.setImageResource(statusError);
-                        rootStatus.setTextColor(lime500);
-                        rootStatus.setText(R.string.root_mounted);
-                        rootToggle.setChecked(true);
-                        safetyNetStatusIcon.setImageResource(statusError);
-                        safetyNetStatus.setText(R.string.root_mounted_info);
-                        break;
-                    } else {
-                        // Not Mounted
-                        rootStatusContainer.setBackgroundColor(green500);
-                        rootStatusIcon.setImageResource(statusOK);
-                        rootStatus.setTextColor(green500);
-                        rootStatus.setText(R.string.root_unmounted);
-                        rootToggle.setChecked(false);
-                        safetyNetStatusIcon.setImageResource(statusOK);
-                        safetyNetStatus.setText(R.string.root_unmounted_info);
-                        break;
-                    }
-                case 2:
-                    // Improper root
-                    rootStatusContainer.setBackgroundColor(red500);
-                    rootStatusIcon.setImageResource(statusError);
-                    rootStatus.setTextColor(red500);
-                    rootStatus.setText(R.string.root_system);
-                    rootToggle.setChecked(true);
-                    safetyNetStatusIcon.setImageResource(statusError);
-                    safetyNetStatus.setText(R.string.root_system_info);
-
-                    rootToggleView.setVisibility(View.GONE);
-                    break;
-            }
+            progressBar.setVisibility(View.GONE);
+            appCheckUpdatesProgress.setVisibility(View.GONE);
+            magiskCheckUpdatesProgress.setVisibility(View.GONE);
         }
     }
 }

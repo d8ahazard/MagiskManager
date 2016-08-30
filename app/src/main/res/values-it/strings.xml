@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Magisk Manager</string>
     <string name="about">Info su…</string>
     <string name="app_changelog">Changelog dell\'app</string>
     <string name="app_developers">Sviluppatori principali</string>
@@ -11,8 +10,6 @@
     <string name="cache_modules">Moduli in cache</string>
     <string name="disable_file_created">Il modulo verrà disabilitato al prossimo riavvio</string>
     <string name="disable_file_removed">Il modulo verrà abilitato al prossimo riavvio</string>
-    <string name="force_reload">Aggiorna</string>
-    <string name="loading">Caricamento…</string>
     <string name="log">Log</string>
     <string name="log_is_empty">Il log è vuoto</string>
     <string name="logs_clear_failed">Non è possibile leggere il log:</string>
@@ -43,8 +40,12 @@
     <string name="sdcard_not_writable">SD card non trovata o non scrivibile</string>
     <string name="selinux_enforcing_info">SELinux è  forzato</string>
     <string name="selinux_permissive_info">SELinux è permissivo\nSpegni SELinux solamente se necessario!</string>
-    <string name="selinux_samsung">Samsung non supporta la modifica dello stato di SELinux</string>
+    <string name="selinux_samsung_info">Samsung non supporta la modifica dello stato di SELinux</string>
     <string name="selinux_toggle">SeLinux Toggle</string>
     <string name="support_thread">Thread di supporto</string>
     <string name="translators">dvdandroid</string>
+    <string name="magisk_version_error">Hai installato Magisk?</string>
+    <string name="root_error">Errore root</string>
+    <string name="root_error_info">Stato Safety Net sconosciuto</string>
+    <string name="selinux_error_info">Stato SELinux sconosciuto</string>
 </resources>

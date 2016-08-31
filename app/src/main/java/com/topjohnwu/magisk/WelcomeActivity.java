@@ -1,6 +1,8 @@
 package com.topjohnwu.magisk;
 
 import android.Manifest;
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -21,7 +23,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.topjohnwu.magisk.utils.MonitorService;
 import com.topjohnwu.magisk.utils.Utils;
 
 import butterknife.BindView;
@@ -52,8 +53,13 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         }
 
+
         // Startups
         PreferenceManager.setDefaultValues(this, R.xml.defaultpref, false);
+        if (!isMyServiceRunning(MonitorService.class)) {
+            Intent myIntent = new Intent(getApplication(), MonitorService.class);
+            getApplication().startService(myIntent);
+        }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
@@ -117,6 +123,16 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
 
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void navigate(final int itemId) {

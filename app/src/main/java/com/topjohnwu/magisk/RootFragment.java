@@ -89,6 +89,9 @@ public class RootFragment extends Fragment {
         rootToggle.setOnClickListener(toggle -> {
             Shell.su(((CompoundButton) toggle).isChecked() ? "setprop magisk.root 1" : "setprop magisk.root 0");
             new Handler().postDelayed(() -> new updateUI().execute(), 1000);
+            if (!((CompoundButton) toggle).isChecked()) {
+                autoRootToggle.setChecked(false);
+            }
         });
 
         autoRootToggle.setOnClickListener(toggle -> {
@@ -110,7 +113,13 @@ public class RootFragment extends Fragment {
         return view;
     }
 
-    private class updateUI extends AsyncTask<Void, Void, Void> {
+    @Override
+    public void onResume() {
+        super.onResume();
+        new updateUI().execute();
+    }
+
+    public class updateUI extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... voids) {

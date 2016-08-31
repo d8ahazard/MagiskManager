@@ -1,6 +1,7 @@
 package com.topjohnwu.magisk;
 
 import android.app.AppOpsManager;
+import android.app.Fragment;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -35,8 +36,9 @@ public class MonitorService extends Service
     private SharedPreferences prefs;
     private Boolean disableroot;
     private Boolean disablerootprev;
+    public static boolean isRecursionEnable = false;
     private NotificationManager mNotifyMgr;
-    private CountDownTimer timer = new CountDownTimer(1000, 20) {
+    private CountDownTimer timer = new CountDownTimer(1000, 1000) {
 
         @Override
         public void onTick(long millisUntilFinished) {
@@ -58,9 +60,23 @@ public class MonitorService extends Service
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        timer.start();
-        return START_STICKY;
+        if (!intent.hasExtra("disable")) {
+
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // DO your work here
+                    // get the data
+                    timer.start();
+                }
+            }).start();
+
+
+            return START_STICKY;
+        } else return STOP_FOREGROUND_REMOVE;
     }
+
 
     @Override
     public void onDestroy() {

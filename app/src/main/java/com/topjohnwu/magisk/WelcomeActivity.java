@@ -169,7 +169,7 @@ public class WelcomeActivity extends AppCompatActivity implements NavigationView
                 break;
             case R.id.autoroot:
                 setTitle(R.string.auto_root);
-                tag = "autoroot";
+                tag = "ic_autoroot";
                 navFragment = new AutoRootFragment();
                 break;
             case R.id.modules:
